@@ -32,12 +32,14 @@ class MainViewModel @Inject constructor(
     private var previewView: PreviewView? = null
     private var graphicOverlay: GraphicOverlay? = null
 
+    private var needUpdateGraphicOverlayImageSourceInfo = false
+
     fun initializeCamera(lifecycleOwner: LifecycleOwner) {
         if (_uiState.value is CameraUiState.Ready) return
 
         viewModelScope.launch {
             try {
-                val provider = ProcessCameraProvider.Companion.getInstance(context).get()
+                val provider = ProcessCameraProvider.getInstance(context).get()
                 cameraProvider = provider
 
                 setupCameraUseCases(lifecycleOwner)
@@ -95,12 +97,30 @@ class MainViewModel @Inject constructor(
 
     private fun createImageAnalysisUseCase(): ImageAnalysis {
         val executor = ContextCompat.getMainExecutor(context)
-
+        val analyzer = ObjectDetectionAnalyzer()
+        needUpdateGraphicOverlayImageSourceInfo = true
         return ImageAnalysis.Builder()
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
             .also { analysis ->
                 analysis.setAnalyzer(executor) { imageProxy ->
-                    ObjectDetectionAnalyzer().analyze(imageProxy, graphicOverlay!!)
+                    if (needUpdateGraphicOverlayImageSourceInfo) {
+                        val rotationDegrees = imageProxy.imageInfo.rotationDegrees
+                        if (rotationDegrees == 0 || rotationDegrees == 180) {
+                            graphicOverlay!!.setImageSourceInfo(
+                                imageProxy.width,
+                                imageProxy.height,
+                                false
+                            )
+                        } else {
+                            graphicOverlay!!.setImageSourceInfo(
+                                imageProxy.height,
+                                imageProxy.width,
+                                false
+                            )
+                        }
+                        needUpdateGraphicOverlayImageSourceInfo = false
+                    }
+                    analyzer.processImageProxy(imageProxy, graphicOverlay!!)
                 }
             }
     }

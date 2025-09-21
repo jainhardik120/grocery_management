@@ -31,7 +31,7 @@ fun CameraScreen(
         when (uiState) {
             is CameraUiState.Loading -> {
                 CircularProgressIndicator(
-                    modifier = Modifier.Companion.align(Alignment.Companion.Center)
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
 
@@ -49,8 +49,8 @@ fun CameraScreen(
             is CameraUiState.Error -> {
                 Text(
                     text = "Error: ${(uiState as CameraUiState.Error).message}",
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.Center)
+                    modifier = Modifier
+                        .align(Alignment.Center)
                         .padding(16.dp)
                 )
             }
