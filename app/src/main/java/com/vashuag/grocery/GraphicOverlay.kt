@@ -262,6 +262,10 @@ class GraphicOverlay(context: Context?, attrs: AttributeSet?) : View(context, at
 
         synchronized(lock) {
             updateTransformationIfNeeded()
+
+            // Clip the canvas to the view bounds to prevent drawing outside boundaries
+            canvas.clipRect(0f, 0f, width.toFloat(), height.toFloat())
+
             for (graphic in graphics) {
                 graphic.draw(canvas)
             }
